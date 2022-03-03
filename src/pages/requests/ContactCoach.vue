@@ -1,5 +1,5 @@
 <template>
-
+  CONTACT A COACH
 </template>
 
 <script>
