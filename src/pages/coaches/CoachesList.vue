@@ -1,23 +1,31 @@
 <template>
-  <section>
-    <CoachFilter :filters="filters" :onChange="setFilters" />
-  </section>
-  <section>
-    <BaseCard>
-      <div class="controls">
-        <BaseButton mode="outline">Refresh</BaseButton>
-        <BaseButton v-if="!isCoach" link to="/register">Register as Coach</BaseButton>
-      </div>
-      <ul v-if="hasCoaches">
-        <CoachItem
-          v-for="coach in filteredCoaches"
-          :key="coach.id"
-          v-bind="coach"
-        />
-      </ul>
-      <h3 v-else>No coaches found.</h3>
-    </BaseCard>
-  </section>
+  <div>
+    <BaseDialog :show="!!error" title="An error occurred!" @close="handleError">
+      <p>{{ error }}</p>
+    </BaseDialog>
+    <section>
+      <CoachFilter :filters="filters" :onChange="setFilters" />
+    </section>
+    <section>
+      <BaseCard>
+        <div class="controls">
+          <BaseButton mode="outline" @click="loadCoaches(true)">Refresh</BaseButton>
+          <BaseButton v-if="!isCoach" link to="/register">Register as Coach</BaseButton>
+        </div>
+        <div v-if="isLoading">
+          <BaseSpinner />
+        </div>
+        <ul v-else-if="hasCoaches">
+          <CoachItem
+            v-for="coach in filteredCoaches"
+            :key="coach.id"
+            v-bind="coach"
+          />
+        </ul>
+        <h3 v-else>No coaches found.</h3>
+      </BaseCard>
+    </section>
+  </div>
 </template>
 
 <script>
@@ -29,6 +37,8 @@ export default {
   components: { CoachFilter, CoachItem },
   data() {
     return {
+      isLoading: false,
+      error: null,
       filters: {
         frontend: true,
         backend: true,
@@ -38,7 +48,7 @@ export default {
   },
   computed: {
     isCoach() {
-      return this.$store.getters['coaches/isCoach'];
+      return this.isLoading || this.$store.getters['coaches/isCoach'];
     },
     filteredCoaches() {
       const coaches = this.$store.getters['coaches/coaches'];
@@ -51,7 +61,10 @@ export default {
     },
     hasCoaches() {
       return this.$store.getters['coaches/hasCoaches'];
-    },
+    }
+  },
+  created() {
+    this.loadCoaches();
   },
   methods: {
     setFilters(event) {
@@ -61,6 +74,18 @@ export default {
         [id]: checked
       };
       // console.log('[CoachesList.setFilters]', this.filters);
+    },
+    async loadCoaches(forceRefresh = false) {
+      this.isLoading = true;
+      try {
+        await this.$store.dispatch('coaches/loadCoaches', { forceRefresh });
+      } catch (error) {
+        this.error = error.message || 'Something went wrong!';
+      }
+      this.isLoading = false;
+    },
+    handleError() {
+      this.error = null;
     }
   }
 };
