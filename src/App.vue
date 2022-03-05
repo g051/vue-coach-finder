@@ -1,13 +1,10 @@
 <template>
   <the-header />
-<!--  <router-view v-slot="slotProps">-->
-<!--    <transition name="route" mode="out-in">-->
-<!--      <component :is="slotProps.Component" />-->
-<!--    </transition>-->
-<!--  </router-view>-->
-  <transition name="route" mode="out-in">
-    <router-view />
-  </transition>
+  <router-view v-slot="slotProps">
+    <transition name="route" mode="out-in">
+      <component :is="slotProps.Component" />
+    </transition>
+  </router-view>
 </template>
 
 <script>
